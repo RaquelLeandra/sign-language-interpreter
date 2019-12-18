@@ -84,3 +84,11 @@ lint/generated/
 lint/outputs/
 lint/tmp/
 # lint/reports/
+
+# CV module
+computer_vision_module/venv/
+.idea/
+computer_vision_module/data/
+computer_vision_module/results/
+computer_vision_module/src/__pycache__/
+computer_vision_module/src/.ipynb_checkpoints/
