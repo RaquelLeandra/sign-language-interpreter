@@ -1,5 +1,8 @@
+# Test model
+opencvTest/src/model-* 
+
 # Idea
-/.idea
+.idea/
 
 # Built application files
 *.apk
