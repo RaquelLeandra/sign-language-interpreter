@@ -12,7 +12,7 @@ from colorsys import rgb_to_hsv
 from keras.models import load_model
 from src.test import classify
 import matplotlib.pyplot as plt
-from PIL import ImageGrab
+from src.Box import Box
 
 
 WIDTH = 180
@@ -22,37 +22,9 @@ HANDS = 1
 DEVICE = 0
 BUFFER_SIZE = 30
 MAX_AREA = 0.2
-
-
-def draw_boxes(boxes, frame):
-    for box in boxes:
-        if box is not None:
-            (left, right, top, bottom) = (box[1] * WIDTH, box[3] * WIDTH, box[0] * HEIGHT, box[2] * HEIGHT)
-            p1 = (int(left), int(top))
-            p2 = (int(right), int(bottom))
-            cv2.rectangle(frame, p1, p2, (77, 255, 9), 3, 1)
-
-
-def get_centers(boxes):
-    return [get_center(box) for box in boxes]
-
-
-def get_center(box):
-    # x = (box[3] - box[1]) // 2 + box[3] WRONG
-    # y = (box[2] - box[0]) // 2 + box[0] WRONG
-    x = box[1] + (box[3] - box[1]) / 2
-    y = box[0] + (box[2] - box[0]) / 2
-    return x, y
-
-
-def man_distance(p1, p2):
-    dx = p1[0] - p2[0]
-    dy = p1[1] - p2[1]
-    return dx * dx + dy * dy
-
-
-def area(box):
-    return (box[3] - box[1]) * (box[2] - box[0])
+HSV_MASK_UPPER = np.array([50, 150, 255])
+HSV_MASK_LOWER = np.array([5, 50, 50])
+BOX_EXPAND = 1.5
 
 
 def good_color(frame, box, debug=False):
@@ -104,8 +76,11 @@ last_scores = deque()
 def select_box(frame, boxes, scores, threshold=0.15, max_missing_time=1, reset=False):
     global last_box, last_time, last_scores
 
+    # Convert to Box objects
+    boxes = [Box(box_data) for box_data in boxes]
+
     # Discard boxes that are too big
-    boxes = [box for box in boxes if area(box) < MAX_AREA]
+    boxes = [box for box in boxes if box.area < MAX_AREA]
 
     # If no "hands" are found
     if len(boxes) == 0:
@@ -114,7 +89,7 @@ def select_box(frame, boxes, scores, threshold=0.15, max_missing_time=1, reset=F
             last_box = None
         return last_box
     else:
-        last_time = time() #TODO
+        last_time = time()  # TODO
 
     # Get boxes with best scores
     best_boxes = []
@@ -129,17 +104,12 @@ def select_box(frame, boxes, scores, threshold=0.15, max_missing_time=1, reset=F
         last_box = None if not best_boxes else best_boxes[0]
         return last_box
 
-    # Get the center of the last hand box
-    last_center = get_center(last_box)
-
     # Calculate distances between last boxes and new boxes
-    centers = get_centers(best_boxes)
-    distances = [man_distance(last_center, center) for center in centers]
+    distances = [last_box.manhattan_to_box(box) for box in best_boxes]
 
     # All distances are too big, hand is not expected to move that fast, try again but with all boxes
     if all(x >= 0.3 for x in distances):
-        centers = get_centers(boxes)
-        distances = [man_distance(last_center, center) for center in centers]
+        distances = [last_box.manhattan_to_box(box) for box in boxes]
         index = np.argmin(distances)
         closest = boxes[index]
         closest_score = scores[index]
@@ -169,35 +139,28 @@ def select_box(frame, boxes, scores, threshold=0.15, max_missing_time=1, reset=F
         return last_box
 
 
-def extract(frame, box, augment=1.5):
-    h, w, ch = frame.shape
-    left, right, top, bottom = (int(box[1] * WIDTH), int(box[3] * WIDTH), int(box[0] * HEIGHT), int(box[2] * HEIGHT))
-    dw = int((right - left) * (augment - 1.0)) // 2
-    dh = int((bottom - top) * (augment - 1.0)) // 2
-    left = max(left - dw, 0)
-    right = min(right + dw, w)
-    top = max(top - dh, 0)
-    bottom = min(bottom + dh, h)
+def extract(frame, box):
+    # Expand roi
+    box.expand(BOX_EXPAND)
+    roi = box.get_roi(frame)
 
-    roi = frame[top:bottom, left:right]
-    lower = np.array([5, 50, 50])
-    upper = np.array([50, 150, 255])
-    mask = cv2.inRange(cv2.cvtColor(roi, cv2.COLOR_BGR2HSV), lower, upper)
+    # Color mask
+    mask = cv2.inRange(cv2.cvtColor(roi, cv2.COLOR_BGR2HSV), HSV_MASK_LOWER, HSV_MASK_UPPER)
 
+    # Morphology
     kernel = np.ones((2, 2), np.uint8)
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
     mask = cv2.dilate(mask, kernel, iterations=3)
 
     # Pick best contour as mask
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    center = get_center(box)  # Normalized
-    center = (int(center[0] * WIDTH), int(center[1] * HEIGHT))
+
     distances = []
     for contour in contours:
         x, y, w, h = cv2.boundingRect(contour)
-        x += w // 2 + left
-        y += h // 2 + top
-        distances.append(man_distance((x, y), center))
+        y = (y + h // 2) / HEIGHT + box.top
+        x = (x + w // 2) / WIDTH + box.left
+        distances.append(box.manhattan_to_point((x, y)))
 
     index = np.argmin(distances)
     contour = contours[index]
@@ -290,7 +253,7 @@ def main():
         # print('Read: {:.2f} | Pre: : {:.2f} | Detector: {:.2f} | Post-1: {:.2f} | Post-2: {:.2f} | Top-Scores: {:s}'.format(
         #     t1 - t0, t2 - t1, t3 - t2, t4 - t3, t5 - t4, ', '.join(format(x, '.2f') for x in scores[:5])
         # ))
-        draw_boxes([box], frame)
+        box.draw(frame)
         cv2.imshow('Detection', frame)
         if cv2.waitKey(33) & 0xFF == ord('q'):
             break
