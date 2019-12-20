@@ -6,7 +6,7 @@ class Box:
     DRAW_COLOR = (77, 255, 9)
     DRAW_THICKNESS = 1
 
-    def __init__(self, box_data):
+    def __init__(self, box_data, score):
         if box_data is None:
             self.left = None
             self.right = None
@@ -15,7 +15,9 @@ class Box:
             self.cx = None
             self.cy = None
             self.area = None
+            self.score = None
         else:
+            self.score = score
             self.left = box_data[1]
             self.right = box_data[3]
             self.top = box_data[0]
@@ -39,6 +41,13 @@ class Box:
             dy = (y - self.cy) * frame_shape[0]
             dx = (x - self.cx) * frame_shape[1]
         return dx * dx + dy * dy
+
+    def manhattan_to_contour(self, contour, frame_shape):
+        x, y, w, h = cv2.boundingRect(contour)
+        # Normalize the distances of the contour
+        cy = (y + h // 2) / frame_shape[0] + self.top
+        cx = (x + w // 2) / frame_shape[1] + self.left
+        return self.manhattan_to_point(point=(cx, cy), frame_shape=None)
 
     def expand(self, percentage):
         percentage -= 1.0  # Take out 100% to calculate the rest
