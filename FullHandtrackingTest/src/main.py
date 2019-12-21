@@ -8,6 +8,7 @@ from src.box_selector import BoxSelector
 from src.hand_extractor import HandExtractor
 from keras.models import load_model
 from src.box import Box
+from colorsys import rgb_to_hsv, hsv_to_rgb
 
 # Note that you need to link handtracking repo to access detector_utils
 
@@ -41,8 +42,8 @@ COLOR_OPTIONS = {
 
 # Hand extractor config
 # TODO same range for good_color and mask ? Or extract the mask range from the roi palette ?
-HSV_MASK_UPPER = np.array([50, 150, 255])
-HSV_MASK_LOWER = np.array([5, 50, 50])
+HSV_MASK_UPPER = np.array([15, 150, 255])  # H in [0, 179], S in [0, 255], V in [0, 255]
+HSV_MASK_LOWER = np.array([0, 50, 50])
 BOX_EXPAND = 1.5
 
 # Hand classifier config
@@ -121,29 +122,25 @@ def main():
         t4 = time()
 
         # Box found
+        roi, mask, hand, labels = None, None, None, None
         if box is not None:
             roi, mask, hand = hand_extractor.extract(frame, box)
-            t5 = time()
+        t5 = time()
 
+        if hand is not None:
             labels = classify(model, convert_for_classifier(hand))
-            t6 = time()
-
-            # MODEL OUTPUT
-            print('Best scores: ', labels)
+        t6 = time()
 
         if DEBUG_INFO:
             if box is not None:
-                h = roi.shape[0]
-                w = roi.shape[1]
-                cv2.imshow('roi', cv2.resize(roi, (int(w * 1.5), int(h * 1.5))))
-                cv2.imshow('mask', cv2.resize(mask, (int(w * 3), int(h * 3))))
-                cv2.imshow('h', cv2.resize(hand, (int(w * 3), int(h * 3))))
-            else:
-                t5 = t4
-                t6 = t4
-            print('\rRead: {:.2f} Pre: {:.2f} Detector: {:.2f} Selector: {:.2f} Extractor: {:.2f} Classifier {:.2f}'.format(
-                t1 - t0, t2 - t1, t3 - t2, t4 - t3, t5 - t4, t6 - t5
-            ))
+                cv2.imshow('roi',  cv2.resize(roi,  (int(roi.shape[1]  * 2), int(roi.shape[0]  * 2))))
+                cv2.imshow('mask', cv2.resize(mask, (int(mask.shape[1] * 2), int(mask.shape[0] * 2))))
+                cv2.imshow('hand', cv2.resize(hand, (int(hand.shape[1] * 2), int(hand.shape[0] * 2))))
+
+            print('\rRead: {:.2f} Pre: {:.2f} Detector: {:.2f} Selector: {:.2f} Extractor: {:.2f} Classifier {:.2f} '
+                  'Most probable classifications: {:s}'
+                  .format(t1 - t0, t2 - t1, t3 - t2, t4 - t3, t5 - t4, t6 - t5,
+                          str(labels) if box is not None else 'Hand not detected'), end='')
 
         # Display basic info
         if box:

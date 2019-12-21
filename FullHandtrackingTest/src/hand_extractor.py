@@ -24,6 +24,11 @@ class HandExtractor:
 
         # Pick best contour as mask
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # If no mask could be found
+        if not contours:
+            return roi, mask, None
+
         distances = [box.manhattan_to_contour(contour, frame.shape) for contour in contours]
         contour = contours[np.argmin(distances)]
         mask = cv2.fillPoly(np.zeros(shape=mask.shape, dtype=np.uint8), pts=[contour], color=(255, 255, 255))

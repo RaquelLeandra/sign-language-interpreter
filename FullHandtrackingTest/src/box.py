@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 
 class Box:
@@ -72,3 +73,8 @@ class Box:
             p1 = (int(self.left * w), int(self.top * h))
             p2 = (int(self.right * w), int(self.bottom * h))
             cv2.rectangle(frame, p1, p2, Box.DRAW_COLOR, Box.DRAW_THICKNESS)
+
+    def kmeans_pixels(self, frame, n_colors, criteria, attempts, flags):
+        pixels = np.float32(self.get_roi(frame).reshape(-1, 3))  # Flatten pixels of ROI- in an array of size (NPixels, 3)
+        _, _, palette = cv2.kmeans(pixels, n_colors, None, criteria, attempts, flags)
+        return palette

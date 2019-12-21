@@ -1,8 +1,9 @@
-from src.fixed_fifo import FixedFIFO
-from time import time
-import cv2
-import numpy as np
 from colorsys import rgb_to_hsv
+from time import time
+
+import numpy as np
+
+from src.fixed_fifo import FixedFIFO
 
 
 class BoxSelector:
@@ -83,19 +84,17 @@ class BoxSelector:
         return self.__last_box
 
     def __adequate_color(self, frame, box, n_colors=5):
-        if box is None:
-            return False
+        if box is not None:
+            palette = box.kmeans_pixels(frame, n_colors, self.__kmeans_criteria, self.__kmeans_attempts, self.__kmeans_flags)
+            return any(self.__color_in_range(BoxSelector.__bgr_to_hsv(color)) for color in palette)
+        return False
 
-        pixels = np.float32(box.get_roi(frame).reshape(-1, 3))  # Flatten pixels of ROI- in an array of size (NPixels, 3)
-        _, labels, palette = cv2.kmeans(pixels, n_colors, None, 
-                                        self.__kmeans_criteria,
-                                        self.__kmeans_attempts,
-                                        self.__kmeans_flags)
-        _, counts = np.unique(labels, return_counts=True)
+    def __color_in_range(self, hsv):
+        h, s, v = hsv
+        return (s > self.__pal_min_sat) and \
+               (v > self.__pal_min_val) and \
+               (h < self.__pal_max_hue or h > self.__pal_min_hue)
 
-        hsv_colors = [rgb_to_hsv(color[2], color[1], color[0]) for color in palette]  # Colors to HSV
-        color_ok = lambda h, s, v: (s > self.__pal_min_sat) and \
-                                   (v > self.__pal_min_val) and \
-                                   (h < self.__pal_max_hue or h > self.__pal_min_hue)  # Check range for HSV color
-
-        return any(color_ok(h, s, v) for h, s, v in hsv_colors)
+    @staticmethod
+    def __bgr_to_hsv(bgr):
+        return rgb_to_hsv(bgr[2] / 255., bgr[1] / 255., bgr[0] / 255.)
