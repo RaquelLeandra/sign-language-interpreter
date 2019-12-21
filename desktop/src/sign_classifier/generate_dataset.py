@@ -31,9 +31,9 @@ def generate_dataset(path, train_folder_path, test_folder_path):
 
 
 if __name__ == '__main__':
-    path = '../data/original_data'
-    train_folder_path = '../data/train'
-    test_folder_path = '../data/test'
+    path = '../../data/classifier/original_data'
+    train_folder_path = '../../data/classifier/train'
+    test_folder_path = '../../data/classifier/test'
     os.makedirs(train_folder_path, exist_ok=True)
     os.makedirs(test_folder_path, exist_ok=True)
     generate_dataset(path, train_folder_path, test_folder_path)

@@ -3,7 +3,7 @@ from time import time
 
 import numpy as np
 
-from src.fixed_fifo import FixedFIFO
+from src.video_to_sign.fixed_fifo import FixedFIFO
 
 
 class BoxSelector:

@@ -4,20 +4,18 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
 
 from pathlib import Path
 import numpy as np
-from keras.preprocessing.image import ImageDataGenerator, array_to_img, img_to_array, load_img
+from keras.preprocessing.image import img_to_array, load_img
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 import random
 import matplotlib.pyplot as plt
 from keras.layers.convolutional import Conv2D, Conv2DTranspose
-from keras.layers import Input, BatchNormalization, Activation, Dense, Dropout, UpSampling2D
-from keras.layers.merge import concatenate, add
-from keras.models import Model, load_model
-from keras.layers.pooling import MaxPooling2D, GlobalMaxPool2D
+from keras.layers import Input, BatchNormalization, Activation, Dropout
+from keras.layers.merge import concatenate
+from keras.models import Model
+from keras.layers.pooling import MaxPooling2D
 from keras.optimizers import Adam
 from keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
-from keras_segmentation.pretrained import pspnet_50_ADE_20K, pspnet_101_cityscapes, pspnet_101_voc12
-
 
 RESIZED_IMG_PATH = Path('../data/resized/images')
 RESIZED_MASKS_PATH = Path('../data/resized/masks')
@@ -146,7 +144,7 @@ def main():
         callbacks = [
             EarlyStopping(patience=10, verbose=1),
             ReduceLROnPlateau(factor=0.1, patience=3, min_lr=0.00001, verbose=1),
-            ModelCheckpoint('model-tgs-salt.h5', verbose=1, save_best_only=True, save_weights_only=True)
+            ModelCheckpoint('../../data/hand_tracker_cnn/model-tgs-salt.h5', verbose=1, save_best_only=True, save_weights_only=True)
         ]
         results = model.fit(X_train, y_train, batch_size=32, epochs=30, callbacks=callbacks,
                             validation_data=(X_valid, y_valid))
@@ -162,7 +160,7 @@ def main():
         plt.legend()
         plt.show()
 
-    model.load_weights('model-tgs-salt.h5')
+    model.load_weights('../../data/hand_tracker_cnn/model-tgs-salt.h5')
     preds_train = model.predict(X_train, verbose=1)
     preds_val = model.predict(X_valid, verbose=1)
 

@@ -22,32 +22,32 @@ sns.set()
 
 def dataset_resource(dataset_name):
     current_dir = os.path.dirname(__file__)
-    resource_dir = os.path.abspath(os.path.join(current_dir, '../data/'))
+    resource_dir = os.path.abspath(os.path.join(current_dir, '../../data/classifier/'))
     return os.path.join(resource_dir, dataset_name)
 
 
 def model_resource(model_name):
     current_dir = os.path.dirname(__file__)
-    resource_dir = os.path.abspath(os.path.join(current_dir, '../data/models'))
+    resource_dir = os.path.abspath(os.path.join(current_dir, '../../data/classifier/models'))
     os.makedirs(resource_dir, exist_ok=True)
     return os.path.join(resource_dir, model_name)
 
 
 def history_resource(experiment_name):
-    results_path = '../results/experiments/history/'
+    results_path = '../../data/classifier/results/experiments/history/'
     os.makedirs(results_path, exist_ok=True)
     return os.path.join(results_path, experiment_name)
 
 
 def confusion_matrix_resource(experiment_name):
-    results_path = '../results/experiments/confusion_matrix/'
+    results_path = '../../data/classifier/results/experiments/confusion_matrix/'
     os.makedirs(results_path, exist_ok=True)
     return os.path.join(results_path, experiment_name)
 
 
 def experiment_resource(model_name):
     current_dir = os.path.dirname(__file__)
-    resource_dir = os.path.abspath(os.path.join(current_dir, '../data/experiments'))
+    resource_dir = os.path.abspath(os.path.join(current_dir, '../../data/classifier/experiments'))
     os.makedirs(resource_dir, exist_ok=True)
     return os.path.join(resource_dir, model_name)
 

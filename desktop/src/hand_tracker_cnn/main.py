@@ -5,9 +5,9 @@ import cv2
 import numpy as np
 
 
-MASK_PATH = Path('../data/masks')
-COCO_IMG_PATH = Path('D:\\Users\\jsier\\Desktop\\COCO_data\\train2014')
-COCO_ANN_PATH = Path('D:\\Users\\jsier\\Desktop\\COCO_data\\annotations_trainval2014\\annotations\\instances_train2014.json')
+MASK_PATH = Path('../../data/hand_tracker_cnn/masks')
+COCO_IMG_PATH = Path('D:\\Users\\jsier\\Desktop\\COCO_data\\train2014')  # FILL WITH YOUR OWN COCO PATH !!
+COCO_ANN_PATH = Path('D:\\Users\\jsier\\Desktop\\COCO_data\\annotations_trainval2014\\annotations\\instances_train2014.json')  # FILL WITH YOUR OWN COCO PATH !!
 PERSON_CATEGORY = 1
 DRAW_RADIUS = 20
 

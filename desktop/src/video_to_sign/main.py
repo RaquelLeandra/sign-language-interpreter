@@ -1,16 +1,18 @@
 import os; os.environ['CUDA_VISIBLE_DEVICES'] = '-1'  # USE CPU
 
-from utils import detector_utils as detector_utils
+from time import time
+
 import cv2
 import numpy as np
-from time import time
-from src.box_selector import BoxSelector
-from src.hand_extractor import HandExtractor
 from keras.models import load_model
-from src.box import Box
-from colorsys import rgb_to_hsv, hsv_to_rgb
 
-# Note that you need to link handtracking repo to access detector_utils
+from src.handtracking.utils import detector_utils as detector_utils
+from src.video_to_sign.box import Box
+from src.video_to_sign.box_selector import BoxSelector
+from src.video_to_sign.hand_extractor import HandExtractor
+
+# Note that you need to clone subomdule handtracking to access detector_utils
+# If using IntellIJ mark the submodule folder and the src folder as sources root
 
 DEBUG_INFO = True
 
@@ -48,7 +50,7 @@ BOX_EXPAND = 1.5
 
 # Hand classifier config
 ALPHABET = np.array([c for c in '0123456789abcdefghijklmnopqrstuvwxyz'])
-CLASSIFIER_MODEL_PATH = 'model.h5'
+CLASSIFIER_MODEL_PATH = '../../data/classifier/best_model_results/experiment_13_median_model_asl_dataset_0.8111110925674438.h5'
 CLASSIFIER_SIZE = (256, 256)
 
 
@@ -135,6 +137,7 @@ def main():
             if box is not None:
                 cv2.imshow('roi',  cv2.resize(roi,  (int(roi.shape[1]  * 2), int(roi.shape[0]  * 2))))
                 cv2.imshow('mask', cv2.resize(mask, (int(mask.shape[1] * 2), int(mask.shape[0] * 2))))
+            if hand is not None:
                 cv2.imshow('hand', cv2.resize(hand, (int(hand.shape[1] * 2), int(hand.shape[0] * 2))))
 
             print('\rRead: {:.2f} Pre: {:.2f} Detector: {:.2f} Selector: {:.2f} Extractor: {:.2f} Classifier {:.2f} '
