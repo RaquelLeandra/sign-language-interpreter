@@ -2,6 +2,7 @@ from collections import deque
 
 
 class FixedFIFO(deque):
+    """ This FIFO queue has a maximum size. If elements are added beyond the maximum size, the next element returned """
 
     def __init__(self, max_size):
         self.max_size = max_size

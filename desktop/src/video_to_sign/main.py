@@ -55,10 +55,12 @@ CLASSIFIER_SIZE = (256, 256)
 
 
 def convert_for_classifier(img):
+    """ Convert the hand image for the model to be able to use it """
     return cv2.resize(cv2.cvtColor(img, cv2.COLOR_BGR2RGB), CLASSIFIER_SIZE)
 
 
 def classify(model, img, best_n=4):
+    """ Classify the hand image in a sign using the model """
     img = np.expand_dims(img, axis=0)
     predicts = model.predict(img)[0]
     bests_idx = np.argpartition(predicts, -best_n)[-best_n:]
@@ -67,11 +69,13 @@ def classify(model, img, best_n=4):
 
 
 def detect_boxes(frame, detection_graph, sess):
+    """ Use the handtracking submodule hand detector """
     boxes, scores = detector_utils.detect_objects(frame, detection_graph, sess)
     return [Box(box_data, score) for box_data, score in zip(boxes, scores)]
 
 
 def pre_process_frame(frame):
+    """ Resize and crop the camera frame """
     h, w, ch = frame.shape
 
     # Force height > width from input

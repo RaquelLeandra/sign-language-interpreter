@@ -7,6 +7,7 @@ from src.video_to_sign.fixed_fifo import FixedFIFO
 
 
 class BoxSelector:
+    """ Its task is to select the most viable box for a hand from all the detected boxes """
 
     def __init__(self, threshold, max_missing_time, buffer_size, max_area, kmeans_options, color_options):
         assert 0.0 < max_area <= 1.0
@@ -84,12 +85,14 @@ class BoxSelector:
         return self.__last_box
 
     def __adequate_color(self, frame, box, n_colors=5):
+        """ Check if the colors of the pixels inside the box are inside a 'hand' color range """
         if box is not None:
             palette = box.kmeans_pixels(frame, n_colors, self.__kmeans_criteria, self.__kmeans_attempts, self.__kmeans_flags)
             return any(self.__color_in_range(BoxSelector.__bgr_to_hsv(color)) for color in palette)
         return False
 
     def __color_in_range(self, hsv):
+        """ Check if this particular color is inside a 'hand' color range """
         h, s, v = hsv
         return (s > self.__pal_min_sat) and \
                (v > self.__pal_min_val) and \

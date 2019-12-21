@@ -3,6 +3,7 @@ import numpy as np
 
 
 class HandExtractor:
+    """ Its task is to find and apply a mask to a ROI containing a hand """
 
     def __init__(self, hsv_mask_lower, hsv_mask_upper, roi_expansion):
         self.hsv_mask_lower = hsv_mask_lower
