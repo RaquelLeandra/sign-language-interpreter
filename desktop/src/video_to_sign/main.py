@@ -13,6 +13,8 @@ from src.video_to_sign.hand_extractor import HandExtractor
 
 # Note that you need to clone subomdule handtracking to access detector_utils
 # If using IntellIJ mark the submodule folder and the src folder as sources root
+# Also, BASE_PATH, MODEL_NAME, PATH_TO_CKPT and PATH_TO_LABELS may need to be modified in src.handtracking.utls.detector_utls.py
+
 
 DEBUG_INFO = True
 
